@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import { MainLayout } from './layouts/MainLayout';
+import { useMockAuth } from './context/MockAuthContext';
 
 // Pages
 import { Dashboard } from './pages/Dashboard';
@@ -22,6 +23,11 @@ import { Settings } from './pages/Settings';
 import { Login } from './pages/Login';
 import { NotFoundPage, ForbiddenPage, ServerErrorPage } from './pages/ErrorPages';
 
+const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { currentUser } = useMockAuth();
+  return currentUser ? <>{children}</> : <Navigate to="/login" replace />;
+};
+
 export default function App() {
   return (
     <AppProvider>
@@ -35,7 +41,7 @@ export default function App() {
           <Route path="/500" element={<ServerErrorPage />} />
 
           {/* Authenticated Application Layout */}
-          <Route element={<MainLayout />}>
+          <Route element={<RequireAuth><MainLayout /></RequireAuth>}>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
             
