@@ -228,32 +228,56 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Persist critical collections
   useEffect(() => {
-    localStorage.setItem('projectflow_tasks', JSON.stringify(tasks));
+    localStorage.setItem('projectflow_tasks_v3', JSON.stringify(tasks));
   }, [tasks]);
 
   useEffect(() => {
-    localStorage.setItem('projectflow_projects', JSON.stringify(projects));
+    localStorage.setItem('projectflow_projects_v3', JSON.stringify(projects));
   }, [projects]);
 
   useEffect(() => {
-    localStorage.setItem('projectflow_project_members', JSON.stringify(projectMembers));
+    localStorage.setItem('projectflow_project_members_v3', JSON.stringify(projectMembers));
   }, [projectMembers]);
 
   useEffect(() => {
-    localStorage.setItem('projectflow_users', JSON.stringify(users));
+    localStorage.setItem('projectflow_users_v3', JSON.stringify(users));
   }, [users]);
 
   useEffect(() => {
-    localStorage.setItem('projectflow_teams', JSON.stringify(teams));
+    localStorage.setItem('projectflow_teams_v3', JSON.stringify(teams));
   }, [teams]);
 
   useEffect(() => {
-    localStorage.setItem('projectflow_team_members', JSON.stringify(teamMembers));
+    localStorage.setItem('projectflow_team_members_v3', JSON.stringify(teamMembers));
   }, [teamMembers]);
 
   useEffect(() => {
-    localStorage.setItem('projectflow_risks', JSON.stringify(risks));
+    localStorage.setItem('projectflow_risks_v3', JSON.stringify(risks));
   }, [risks]);
+
+  useEffect(() => {
+    localStorage.setItem('projectflow_comments_v3', JSON.stringify(comments));
+  }, [comments]);
+
+  useEffect(() => {
+    localStorage.setItem('projectflow_audit_v3', JSON.stringify(auditLogs));
+  }, [auditLogs]);
+
+  useEffect(() => {
+    localStorage.setItem('projectflow_notifs_v3', JSON.stringify(notifications));
+  }, [notifications]);
+
+  useEffect(() => {
+    localStorage.setItem('projectflow_settings_v3', JSON.stringify(settings));
+  }, [settings]);
+
+  useEffect(() => {
+    localStorage.setItem('projectflow_attachments_v3', JSON.stringify(attachments));
+  }, [attachments]);
+
+  useEffect(() => {
+    localStorage.setItem('projectflow_dependencies_v3', JSON.stringify(taskDependencies));
+  }, [taskDependencies]);
 
   useEffect(() => {
     localStorage.setItem('projectflow_current_user_id', currentUserId);
