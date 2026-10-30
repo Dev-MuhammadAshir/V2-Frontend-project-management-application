@@ -28,10 +28,12 @@ const roleToUserMap: Record<GlobalRole, string> = {
 };
 
 export const MockAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Demo auth starts signed out unless a prior demo session was explicitly saved.
+  // This is a UI prototype only; it does not authenticate credentials or issue tokens.
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     const savedUserId = localStorage.getItem('projectflow_auth_user_id');
-    const found = initialUsers.find(u => u.id === (savedUserId || 'usr-1'));
-    return found || initialUsers[0];
+    if (!savedUserId) return null;
+    return initialUsers.find(u => u.id === savedUserId) || null;
   });
 
   const [simulateLoading, setSimulateLoading] = useState<boolean>(false);
@@ -54,6 +56,7 @@ export const MockAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const logout = () => {
+    localStorage.removeItem('projectflow_auth_user_id');
     setCurrentUser(null);
   };
 
