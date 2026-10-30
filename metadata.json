@@ -1,0 +1,6 @@
+{
+  "name": "ProjectFlow — Real-Time Team Project Management",
+  "description": "Enterprise-grade real-time project management platform featuring Kanban boards, PIRAE risk intelligence, capacity management, and audit logging.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
