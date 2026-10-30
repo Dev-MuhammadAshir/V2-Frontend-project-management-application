@@ -87,7 +87,7 @@ The IDs below retain SRS 3.0 identifiers where they exist. Grouping is normalize
 - **FR-TASK-04:** Capture title, description, assignees, priority, deadline/due date, start date and estimated effort where applicable.
 - **FR-TASK-05:** Assign one or more members to a task.
 - **FR-TASK-06:** Support subtasks stored as JSONB in the SRS data model.
-- **FR-TASK-07:** Store dependencies in the relational `task_dependencies` table; do not use a `tasks.dependencies` JSONB field.
+- **FR-TASK-07 (MVP):** Store dependencies in the relational `task_dependencies` table; do not use a `tasks.dependencies` JSONB field. Dependency CRUD and cycle prevention are MVP requirements; the dependency validation gate before transition to DONE is Extended under FR-TASK-15 / FR-KAN-03.
 - **FR-TASK-08:** Manage task status.
 - **FR-TASK-09:** Provide task history (Extended).
 - **FR-TASK-10:** Status enum is exactly `TODO | IN_PROGRESS | DONE`.
@@ -142,7 +142,7 @@ The IDs below retain SRS 3.0 identifiers where they exist. Grouping is normalize
 - **FR-ATT-02:** Authorize upload and download.
 - **FR-ATT-03:** Persist `storage_key`, `mime_type`, `file_size`, `original_filename`; generate download URL when read rather than storing a permanent public URL.
 - **FR-ATT-04:** Authorize deletion.
-- **FR-ATT-05:** Exactly one of `task_id` and `comment_id` must be non-null (XOR).
+- **FR-ATT-05:** Exactly one of `task_id` and `comment_id` must be non-null (XOR). Supporting Sprint 10/13 artifacts additionally specify a 10 MB maximum, a PDF/PNG/JPG/JPEG/DOCX/XLSX/TXT allowlist, magic-byte validation, and backend-controlled storage; these are included as reconciled implementation constraints in §13.
 - Provide upload progress, validation errors, file metadata and clear download/delete affordances. Do not expose private storage keys as public links.
 
 ### 2.11 Analytics — basic MVP, advanced Extended
@@ -450,3 +450,216 @@ The exact requirement buckets in §2.7 govern phase assignment where a requireme
 - Companion API evidence: OpenAPI 3.1 document paths and schemas. Its metadata labels itself version 2.1.0; that label is not used to downgrade or override SRS 3.0.
 - User instruction: ignore versioning, duplicate IDs and requirement-organization mistakes in supporting artifacts; preserve distinct behaviour only when compatible with SRS 3.0.
 - **Reconciliation limitation:** Sprint 1–14 and Errata DOCX files are present in `public/assets/aistudio/`, but their full body text has not yet been successfully extracted in this pass. Therefore, this catalogue is a substantial SRS 3.0 + OpenAPI baseline, but must not yet be represented as the final cross-artifact reconciliation of every supporting document. Next step is to extract/review those artifacts and add only compatible missing detail, without duplicating requirements.
+
+
+## 13. Cross-artifact reconciliation — requirements accepted from the Sprint and Errata artifacts
+
+This section records the cross-check of the complete `public/assets/aistudio/` document set. Supporting artifact names are kept as provenance, not as competing baseline versions. Old SRS/version labels and duplicate/misorganized requirement identifiers are ignored as instructed; distinct behaviour is retained only when compatible with SRS 3.0.
+
+### 13.1 Artifact inventory and coverage
+
+| Source artifact | Main content reviewed | Catalogue areas reconciled |
+|---|---|---|
+| `SRS_3.0_CONSOLIDATED_BASELINE_e782668d.md` | Authoritative scope, FR/NFR, roles, frozen data dictionary, event list, PIRAE rules, deployment, phase ordering | §§1–12; normative authority |
+| `OpenApi-Specification.txt` | OpenAPI 3.1 paths, request/response schemas, security declarations, error responses, pagination and server URLs | §7 and API gap register |
+| `ERRATA SHEET,.docx` | E-001 onward, authorization drift, status-code mismatch, module-boundary problems, session/logout caveat, later artifact corrections | §§5, 7, 10, 14 |
+| `Sprint 1 — Repository Scaffolding (Kickoff).docx` | Monorepo/workspace layout, React/Vite frontend, Express API, shared socket contract, config, validation, routes, CI/deployment references | §§1, 3, 10, 11 |
+| `SPRINT 2 MODULE AUTH BACKEND + FRONTEND .docx` | Auth vertical slice, frontend session lifecycle, login/refresh/logout, token handling, protected routes, auth query/client behaviour | §§2.1, 2.2, 5, 7, 10 |
+| `Sprint 3 MODULE USERS + RBAC … .docx` | User administration, global role matrix, permission middleware, membership checks, resource-level authorization | §§2.2, 5, 6, 7 |
+| `Sprint 4 Teams Module (Backend+Frontend).docx` | Team CRUD/members, membership events, audit, corrected Team Owner authorization | §§2.3, 5, 6, 8, 14 |
+| `Sprint 5 ARTIFACT 26 — Projects Module … .docx` | Project CRUD/archive, project membership, project-level role semantics, project audit, role restrictions | §§2.4, 5, 6, 7, 14 |
+| `Sprint 6 Task module … .docx` | Task CRUD, field persistence, assignment, subtasks, status/priority enums, task history/audit, task real-time events | §§2.5, 2.6, 5, 6, 8, 14 |
+| `Sprint 7 MODULE KANBAN + DEPENDENCIES … .docx` | Kanban transitions, dependency CRUD, cycle detection, DONE gate, status event, all mutation paths | §§2.5–2.6, 5, 8, 14 |
+| `Sprint 8 module comments + mentions … .docx` | Comment CRUD, mentions, project membership checks, 15-minute edit window, events and audit | §2.8, §§5, 6, 8 |
+| `Sprint 9 notification module … .docx` | Persistent notifications, producers, offline delivery, ownership boundary, read/unread and retention | §2.9, §§5, 6, 8, 14 |
+| `sprint 10 module attachment … .docx` | Multipart upload, 10 MB cap, MIME/magic-byte checks, storage abstraction, XOR and access control | §2.10, §§5, 6, 7, 14 |
+| `Sprint 11 MODULE ANALYTICS … .docx` | Project summary, workload, overdue list, cycle time, trends, dependency blocking, risk trends, read-only behavior | §2.11, §§6, 7, 9, 14 |
+| `Sprint 12 MODULE AUDIT … .docx` | Audit query/filtering/pagination, append-only DB trigger, read permissions and project-scoped PM visibility | §2.12, §§5, 6, 7, 14 |
+| `Sprint 12 continued MODULE PIRAE … .docx` | Risk rule implementation, worker/cron, risk lifecycle proposals, risk identity/scope, frontend risk views | §2.13, §§6, 9, 14 |
+| `Sprint 13 module deployment..docx` | Production Compose, secrets, TLS, Nginx, WebSocket headers, backups, health, logging, rollback/restore | §§3, 10, 11, 14 |
+| `Sprint 14 FINAL DOCUMENTATION.docx` | User guide, demo/viva material, operational guidance and consolidation of prior artifacts | §§1, 10, 11, 14 |
+
+### 13.2 Supplemental requirements accepted as compatible with SRS 3.0
+
+These details add implementation precision without replacing the SRS.
+
+#### Authentication, session and frontend behaviour
+- The auth flow is a vertical slice: login, access-token handling, refresh, logout, current-user/profile, password change, protected routes and session-aware socket lifecycle.
+- The browser must not assume that deleting local storage alone revokes a server session. Logout must call the server revocation endpoint and clear client state even when the access token has expired; see open issue E-007 below.
+- User administration belongs to the Users module. Auth and Users must not retain duplicate route ownership or orphaned update/role/status service implementations.
+- Registration schema/password schema are shared validation contracts when consumed by more than one module; do not deep-import internal files across module boundaries.
+- Frontend route guards and permission-based controls are usability features only. Every API operation and Socket.IO room join must independently enforce backend authorization.
+
+#### Team and project governance
+- Team creation is System Administrator-only; team membership modification is System Administrator or Project Manager, matching FR-AUTH-12/FR-TEAM-03 and the corrected Teams artifact.
+- A Team Member's membership descriptor must never grant global authorization. The SRS team-role values are `Admin-Assigned` and `Member`; the old `Owner` authorization path is rejected.
+- Project-level role is distinct from global role. A global Project Manager who is a project Contributor must not automatically receive project-Manager-only operations merely because of their global role; global permission and project membership/resource scope both apply.
+- Project creation is restricted by the permission matrix to Administrator/Project Manager. Project update/archive and membership changes require the appropriate global grant plus valid project membership and project-level authorization.
+- Sprint 5 describes a “last project Manager must remain” invariant. This is a supporting-artifact safeguard, not an explicit SRS 3.0 FR. Treat it as a proposed business rule requiring product confirmation before adding it as a mandatory prototype rule.
+
+#### Task, Kanban and dependency behaviour
+- Dependency direction is explicit: `blocking_task_id` is the prerequisite and `blocked_task_id` is the dependent task. Reject self-dependencies, duplicate edges, invalid/missing task references and cycles; cross-project dependency behaviour must be rejected unless a future approved requirement says otherwise.
+- Dependency CRUD is part of the SRS MVP set (FR-TASK-07); the DONE-transition gate is Extended (FR-TASK-15/FR-KAN-03). When the gate is implemented, it must apply to every path that can transition a task to DONE—not just the dedicated Kanban endpoint.
+- A task's assignees are represented by the `task_assignees` join relation; subtasks remain embedded JSONB; dependencies remain in `task_dependencies`. Do not conflate these three structures.
+- A status mutation must persist the authoritative change before broadcasting. Audit/correlation records and notifications must be committed consistently with the mutation where required. Rejected transitions must not leave the client displaying a state the server did not accept.
+- Sprint 7 explicitly notes that reopening a blocker does not automatically cascade changes to already-DONE downstream tasks; the DONE gate is checked when a task transitions to DONE. This is a compatible implementation detail, not a requirement to automatically reopen dependent tasks.
+
+#### Comments, mentions and notifications
+- A mention target must be a valid user who is a member of the task's project. Mentioning a non-member must be rejected; a mention is not permission to access the project.
+- Comment author can edit only within 15 minutes. The service must check authorship and elapsed time on the server, update the edit timestamp and emit the frozen `comment.updated` event.
+- The Sprint 8 artifact proposes comment deletion by author or project Manager/Admin, and distinguishes `COMMENT_ADD` from `COMMENT_MENTION`. Preserve the permission split; the precise deletion policy should follow the RBAC matrix/error catalogue and not be broadened by the UI.
+- Notification ownership is the recipient's `userId`; a user may list/mark-read only their own notifications, regardless of global role. Notifications are persisted, then made available in real time to online users; offline users retrieve them from the database.
+- Compatible notification categories from Sprint 9 are: `TASK_ASSIGNED`, `TASK_STATUS_CHANGED`, `TASK_DUE_SOON`, `COMMENT_CREATED`, `COMMENT_MENTIONED`, `RISK_DETECTED`, and `RISK_UPDATED`. Event producers should be shared module services, not duplicated notification logic inside each controller.
+- SRS retention is 6 months for notifications, at least 12 months for audit records and risk assessments, and until deletion/project archival for attachments.
+
+#### Attachments
+- Maximum size is 10 MB per file.
+- Accepted file families specified by Sprint 10: PDF, PNG, JPG/JPEG, DOCX, XLSX and TXT. Validate both the declared type/extension and file magic bytes; declared `Content-Type` alone is not trustworthy.
+- Exactly one of `taskId` or `commentId` is required. Enforce this in request validation, service logic and a database CHECK constraint.
+- File bytes live in backend-controlled storage; PostgreSQL stores metadata only. Use a provider-neutral `storage_key`; derive download access through an authenticated endpoint, not a permanent public URL. Do not expose internal storage keys to ordinary clients.
+- Download permission is scoped to an authorized project member; upload requires `ATTACHMENT_UPLOAD` plus project/resource access. Deletion is restricted to the uploader and/or authorized project manager/admin according to the artifact's policy and the finalized permission matrix.
+- No new attachment-specific Socket.IO event is allowed: CA-07/SRS §7 freezes exactly 13 events. Attachment UI should invalidate/refetch its attachment query after a successful mutation unless a future approved change explicitly revises the event contract.
+
+#### Analytics
+- Basic metrics must be read-only and computed from persisted records: completion %, overdue tasks, status distribution, priority distribution and workload per member.
+- Sprint 11 defines useful workload detail fields: active task count, estimated remaining effort, overdue task count and active HIGH/CRITICAL task count.
+- Extended analytics include cycle time, completion trends, dependency blocking and project risk trends. The Sprint artifact proposes routes for these as described in §15; they are not all present in the current OpenAPI file and therefore require contract reconciliation before implementation.
+- A metric must state its project and time scope, handle an empty project and reconcile with source records. No hard-coded chart values or fabricated “live” data in the prototype.
+
+#### Audit and PIRAE
+- Audit reads are Admin-global and Project-Manager project-scoped; a PM must not query other projects' audit records. Team Members/Viewers are denied the audit screen/API unless the finalized matrix explicitly grants a narrower operation.
+- Audit list supports filters for entity type/ID, actor, action, time range and correlation ID, plus standard pagination. It is read-only. Database triggers must reject UPDATE and DELETE, not merely hide UI controls.
+- Every mutation that requires audit writes actor, action, entity type/ID, old/new values, timestamp and non-null correlation ID. Capture task create/assignment/status/deadline/priority, project state and membership changes.
+- PIRAE workload is project-scoped in the Sprint 12 design because each risk record belongs to a project. This is a documented scope limitation: it does not measure a user's aggregate workload across all projects.
+- Workload severity is derived directly from ratio using SRS thresholds. For Delay/Dependency/Priority, use SRS score bands. Critical severity is reserved for workload ratio >1.20; do not invent a universal Critical band for other risk types.
+- The PIRAE artifact proposes a workload score `min(100, round(ratio * 70))`, persistence of actionable Medium-or-higher risks, and creating a fresh risk record if a previously resolved condition recurs. These are artifact-level implementation choices not fully specified by SRS 3.0; preserve them only if confirmed against the current risk schema/acceptance tests. Never let them override the SRS severity formulas.
+- PIRAE execution is asynchronous (BullMQ/Redis), expected within 5 seconds after relevant mutations, plus a daily 00:00 UTC full evaluation. Resolving a risk changes risk lifecycle only. PIRAE must not mutate tasks, deadlines, assignments or project state.
+- A risk record requires a stable target identity (task for Delay/Dependency/Priority; user for Workload) to avoid conflating multiple risks of the same type in one project. The frozen SRS data dictionary does not currently define a `target_id`/task/user target column; see G-06 in §15 before schema work.
+
+#### Deployment and operations
+- Development/prototype and production configuration must be separated. Never commit production secrets; use environment variables/secrets and an explicit CORS allowlist.
+- Docker Compose includes frontend, backend, PostgreSQL, Redis and Nginx; migration and seed are explicit operational tasks. Production artifacts additionally propose separate worker/scheduler, backup sidecar, TLS renewal and blue/green deployment; treat blue/green/sidecars as production implementation options, not new product features.
+- Nginx must proxy WebSocket Upgrade/Connection headers; enforce upload body cap consistently with the 10 MB attachment policy.
+- Backups include PostgreSQL and uploaded file storage; RPO 24 hours and RTO 4 hours are FYP-level targets. Restore drills, health checks and structured logs are operational verification, not just documentation.
+- CI/CD should run lint/typecheck/unit/integration/API/real-time/security tests and enforce >=80% coverage on critical modules. The final production hardening target is 1,000 concurrent authenticated users, API p95 <=500 ms and real-time latency <=200 ms.
+
+## 14. Binding reconciliation decisions
+
+The following decisions are binding for the catalogue and any later prototype phase.
+
+| Decision | Binding rule | Supporting evidence / consequence |
+|---|---|---|
+| R-01 — Baseline precedence | SRS 3.0 overrides all older SRS labels, Sprint prose, duplicated IDs and prior implementation assumptions. | SRS 3.0 declares itself the consolidated authoritative baseline. |
+| R-02 — Authorization source | Global authorization comes from the RBAC permission matrix; project membership/role may further restrict access but never grant global authority. | SRS §4.2/App. A; Errata E-001. |
+| R-03 — Team roles | Persist SRS team roles `Admin-Assigned` and `Member`. `Owner` is not a role or authorization principal. | SRS §4.2/§6.2; CH-44; Errata E-001. |
+| R-04 — Role scopes | Global role, team role and project role are distinct fields with distinct scopes. | SRS role mapping table; Sprint 3/5. |
+| R-05 — Team management | Create Team = Administrator only; manage membership = Administrator + Project Manager. Do not grant authority to a team Owner. | FR-AUTH-12, FR-TEAM-03, CA-05, corrected Sprint 4. |
+| R-06 — Project manager restrictions | Project membership and project role must be checked in addition to global permission. Project Manager global role alone does not bypass a project Contributor/Viewer role. | FR-RBAC-04/05; Sprint 5 and Sprint 7 preventive measures. |
+| R-07 — Task state | Status exactly TODO/IN_PROGRESS/DONE; priority exactly LOW/MEDIUM/HIGH/CRITICAL. | CA-01/09, SRS §4.5/§6.2. |
+| R-08 — Dependency model | Relational task_dependencies with unique (blocking_task_id, blocked_task_id); no tasks.dependencies JSONB. | CA-11; SRS §6.2. |
+| R-09 — DONE gate | Validate blockers before any transition to DONE in every applicable update path. Phase Extended, not a reason to omit dependency CRUD from MVP. | FR-TASK-15, FR-KAN-03; Sprint 7 caught bypass via generic PATCH. |
+| R-10 — Comment edit | Author-only edit, <=15 minutes, server-enforced, timestamp updated, comment.updated emitted. | FR-COMM-03/04, AC-COL-03. |
+| R-11 — Notifications | User ownership boundary, PostgreSQL persistence and offline retrieval; no reliance on socket delivery alone. | FR-NOTIF-01–04, Sprint 9. |
+| R-12 — Attachments | XOR parent; 10 MB; allowlisted file families and magic-byte validation; no attachment-specific socket event. | FR-ATT-01–05, AC-DATA-07, Sprint 10 Errata E-021. |
+| R-13 — Frozen events | Implement exactly the 13 events in SRS §7.2 with the standard envelope and room policy. Do not add `attachment.created` or `team.updated` without baseline change. | CA-07, Sprint 10 correction. |
+| R-14 — Audit | Append-only, 12-month retention; Admin global, PM only within authorized project scope; filter/paginate read endpoints. | FR-AUD-01–06, SRS App. A, Sprint 12 E-028/E-029. |
+| R-15 — PIRAE | Async only, 5-second target, daily UTC schedule, advisory only; workload severity by ratio; Critical only for workload. | FR-PIRAE-01–08, SRS §8, Sprint 12. |
+| R-16 — API envelopes | Use standard success/error envelopes and pagination metadata. Exact operation schema/status must be reconciled with OpenAPI, not guessed from frontend screens. | FR-API-01–08. |
+| R-17 — Prototype data | Clearly distinguish seeded/demo data from server-backed data. No fake production metrics. | FR-AN-06; Sprint 11/14. |
+| R-18 — Security boundary | Client-side route/button checks do not replace server auth, resource checks, or socket room checks. | DC-06, NFR-AUTH-01/02. |
+
+## 15. Conflict, contradiction and gap register
+
+**Status definitions:** **Resolved by SRS** = implement SRS rule now; **Contract gap** = do not guess; update the schema/OpenAPI before claiming full compliance; **Non-normative proposal** = supporting artifact idea requires product approval.
+
+| ID | Topic | SRS 3.0 baseline | Supporting artifact divergence / gap | Resolution / action |
+|---|---|---|---|---|
+| G-01 | Team Owner role | `team_members.role` is `Admin-Assigned` or `Member`; authority comes from global role matrix. | Earlier Teams artifact used `Owner` and initially treated it as authority; Errata E-001 corrected the authorization bug but historical prose still contains Owner language. | **Resolved by SRS.** Ignore Owner as role/permission. Do not implement last-owner checks unless a separate non-role ownership concept is approved. |
+| G-02 | Team error status | Error catalogue's corrected decision is `TEAM_OWNER_REQUIRED` -> 409 Conflict, but the Owner concept is not in SRS 3.0 role schema. | Errata E-002 resolves 400 vs 409 in favour of 409. | **Partly resolved.** 409 is correct for genuine state conflicts; do not create an Owner-specific UI flow under the SRS team-role model. |
+| G-03 | Project dates | FR-PROJ-02 requires objectives, start date, end date, status and priority. | Frozen `projects` dictionary has description, status, priority and deadline, but no explicit start_date or end_date pair; Sprint 5 admits it substituted createdAt for start date. | **Contract/schema gap.** Do not silently use createdAt as start date. Reconcile Project DTO/schema/migration to represent required dates before claiming FR-PROJ-02 complete. |
+| G-04 | Task start date / cycle time | FR-TASK-04 includes start date; FR-TASK-14 adds start dates (Extended). FR-AN-07 cycle time is Extended. | Frozen `tasks` dictionary has no `start_date` or `completed_at`; Sprint 6/11 uses them in implementation/design. | **Contract/schema gap.** Add approved migration/DTO fields or derive cycle-time data from audited state transitions; do not imply the frozen schema already contains them. |
+| G-05 | Login identifier | FR-AUTH-01 says email/username. | Frozen users dictionary contains unique email but no username column; OpenAPI LoginRequest needs checking against the exact schema. | **Contract gap.** Email login is implementable from current dictionary; username login requires a schema decision. Do not add an undocumented username field silently. |
+| G-06 | Risk target identity | SRS risk_assessments requires project_id, type, score, severity, reason, recommendation, status, resolved_at and generated_at. | PIRAE implementation needs user target for WORKLOAD and task target for DELAY/DEPENDENCY/PRIORITY, but frozen dictionary has no target/task/user column. | **Contract/schema gap.** Add a target discriminator + target UUID or explicit nullable task/user FKs with constraints and uniqueness rules before claiming multi-risk-per-project correctness. |
+| G-07 | Project status/priority enum | SRS data dictionary gives project status default Active and priority default Medium, but does not freeze complete enums/CHECK constraints for project values. | Sprint 5 proposes Active/OnHold/Completed/Archived and uses a shared Priority type. | **Contract gap.** Keep only documented defaults until a project-specific enum is approved; do not assume task priority enum is also the project priority contract. |
+| G-08 | Audit permissions | Appendix A grants Admin global audit and PM scoped audit; NFR-PRIV-01 restricts access to authorized data. | Early Sprint 12 wording considered Admin/PM globally, then E-028 narrows PM to project scope. | **Resolved by SRS + Errata.** Admin global; PM scoped to authorized projects; Team Member/Viewer denied. |
+| G-09 | API extended analytics | FR-AN-07..10 require cycle time, trends, dependency blocking and risk trends. | OpenAPI includes summary/workload/overdue, while Sprint 11 proposes `/trends`, `/dependencies`, `/risks` analytics routes. | **Contract gap.** Requirements remain in scope (Extended); update OpenAPI before using those proposed paths as frozen endpoints. |
+| G-10 | Notification unread count | FR-NOTIF-01..04 require generation, persistence, realtime and offline retrieval; standard read endpoints are defined. | Sprint 9 adds `GET /notifications/unread-count`; current OpenAPI has list/read/read-all but not unread-count. | **Optional API extension.** Useful UI count may be derived from paginated/read state; do not treat the endpoint as frozen until OpenAPI is updated. |
+| G-11 | Attachment list routes | SRS defines attachment metadata and upload/download/delete; OpenAPI defines POST/GET-by-id/DELETE. | Sprint 10 proposes `GET /tasks/:taskId/attachments` and `GET /comments/:commentId/attachments`, not in OpenAPI. | **Contract gap.** UI may use parent DTOs only if contract supplies attachment refs; otherwise add explicit list endpoints to OpenAPI. |
+| G-12 | Attachment events | Frozen catalog has exactly 13 events, no attachment-specific event. | Sprint 10 considered task.updated/comment.updated extensions, then chose no new event. | **Resolved.** No attachment event; invalidate/refetch attachment query after mutation. |
+| G-13 | Attachment size/type | SRS requires type/size validation but does not enumerate these values in the FR row. | Sprint 10/13 sets 10 MB and PDF/PNG/JPG/JPEG/DOCX/XLSX/TXT allowlist. | **Compatible supplemental policy.** Use 10 MB and the allowlist unless a later approved SRS policy changes them; magic-byte validation is required by artifact. |
+| G-14 | PIRAE risk persistence/lifecycle | SRS defines scoring, severity, Open/Resolved, resolved_at; it does not fully prescribe re-open/history semantics or minimum persisted severity. | Sprint 12 proposes Medium+ persistence, auto-clear/reopen variants at different points, and fresh rows for recurring resolved risks. | **Non-normative proposal / inconsistent artifact.** Follow only the final Sprint 12 decision where tests/schema agree; otherwise record explicit product decision. Never alter SRS severity formula or advisory-only invariant. |
+| G-15 | Workload risk scope | SRS risk row belongs to a project but does not explicitly state whether workload aggregates across all projects. | Sprint 12 decides project-scoped workload and documents global aggregation as future work. | **Compatible design decision, explicitly scoped.** Treat as project-scoped for FYP and state the limitation in UI/help; do not imply global workload analysis. |
+| G-16 | Workload risk score | SRS freezes ratio and severity thresholds but not a score mapping from ratio to 0–100. | Sprint 12 proposes `min(100, round(ratio * 70))`. | **Supplemental implementation choice.** Can be used if kept separate from severity derivation and validated by boundary tests; the ratio determines severity. |
+| G-17 | Analytics data model | FR-AN-07 cycle time, FR-AN-08 trends and FR-AN-10 risk trends require historical/time-series inputs. | Frozen task dictionary lacks completed_at; artifact suggests deriving cycle time from completedAt-createdAt; audit history may be the only existing source. | **Contract gap.** Define the authoritative timestamp/source before calculating metrics. Never fabricate history for tasks that predate tracking. |
+| G-18 | Project membership vs global roles | SRS requires global role + membership + resource-level authorization. | Some artifact snippets discuss role grants in a way that can be read as global role alone bypassing project scope. | **Resolved by SRS.** Evaluate global permission, membership and project-role restrictions as a combined chain. |
+| G-19 | Error status mapping | SRS/OpenAPI distinguish 401, 403, 404, 409, 422, 423 and 429. | Errata documents occasional catalog/code mismatch and old artifacts contain stale statuses. | **Contract-first.** Update error catalogue and tests together; frontend maps actual API code/status and must not guess from older Sprint text. |
+| G-20 | Expired-token logout | FR-AUTH-11 requires logout to revoke refresh session and blacklist JTI. | Errata E-007 notes a logout path that requires a valid access token, so an expired access token can make logout return 401 while refresh remains. | **Known issue.** Logout/session cleanup must revoke the refresh session even when access token expired, using a safe session identifier/refresh-token flow; do not call this fully satisfied until fixed/tested. |
+| G-21 | Module boundaries | Shared module contracts should be exported via public module entry points; deep imports are forbidden. | Errata E-003 catches users importing registerSchema from auth internals; E-006 catches orphaned duplicated auth service methods after Users extraction. | **Resolved design rule.** Use shared/core validation and single module ownership; do not duplicate auth/user mutation logic. |
+| G-22 | Team metadata permission name | SRS has TEAM_CREATE and TEAM_MANAGE_MEMBERS, not TEAM_UPDATE. | Errata E-005 notes PATCH team metadata uses TEAM_MANAGE_MEMBERS as the available Admin/PM umbrella permission. | **Known semantic compromise.** Follow SRS authority, document the route policy, do not invent TEAM_UPDATE without approved RBAC/OpenAPI change. |
+| G-23 | Audit retention | SRS says >=12 months; audit artifact includes query filters and append-only triggers. | No material conflict. | **Accepted.** Preserve retention, filter/pagination, DB-level append-only enforcement and scoped query access. |
+| G-24 | Availability | SRS freezes 90% monthly FYP target and 99.5% future production target. | Deployment artifact includes production blue/green and health probes. | **Resolved.** 90% is the current FYP target; 99.5% is future architecture target, not a current guarantee. |
+| G-25 | Realtime event names | SRS catalog is frozen at 13. | Older artifacts sometimes discuss `kanban.*`, `team.updated`, attachment events or extra notification events. | **Resolved.** Use the 13 frozen names only; map board state changes to task.updated/task.status_changed and membership changes to membership.changed. |
+| G-26 | Team room naming | SRS room strategy names `project:{projectId}` and `user:{userId}`; Errata CA-07 addendum mentions `team:{teamId}` for team-scoped membership.changed. | The team room is an additive detail in Errata, not part of the original two-room list. | **Scoped extension.** Do not create a general team-wide event ecosystem; for membership.changed with scope='team', use the corrected addendum only if implementing team-room subscriptions, and keep authorization checks mandatory. |
+| G-27 | Task dependency validation timing | FR-TASK-07 is MVP; FR-TASK-15/FR-KAN-03 DONE gate is Extended. | Sprint 6 initially defers dependency endpoints to Sprint 7, but Sprint 7 makes clear the dependency CRUD is a separate later sprint, not out of MVP. | **Resolved by SRS phase table.** Dependency CRUD is MVP; DONE gate is Extended. Sprint ordering is not a reason to reclassify requirement priority. |
+| G-28 | Test-case IDs and artifact numbering | SRS appendix RTM is representative and older docs contain duplicated/misaligned FR/TS IDs. | Supporting docs have FR-CPMM typo and changing artifact/sprint numbers. | **Ignored as instructed.** Track by unique requirement behaviour and canonical SRS ID; do not create duplicate catalogue rows because of typo/numbering drift. |
+
+### 15.1 Schema decisions required before full implementation
+
+The following items are not safe to silently “fix” in the frontend. They need a coordinated SRS-compatible schema/API decision:
+1. Add explicit project start/end dates required by FR-PROJ-02.
+2. Add task start date for Extended FR-TASK-14 and decide authoritative completion timestamp for cycle-time analytics.
+3. Decide whether login accepts email only or add a username column and uniqueness/normalization rules.
+4. Add a risk target identity model to support per-task and per-user risks without collapsing multiple records.
+5. Freeze project status/priority enum values and their validation rules.
+6. Update OpenAPI for extended analytics and any chosen unread-count/attachment-list routes.
+7. Define the final PIRAE open/resolved/reoccurrence policy and test it against risk identity constraints.
+
+## 16. Permission matrix — practical frontend interpretation
+
+This table is a user-interface summary only; the backend permission matrix remains authoritative.
+
+| Capability | Administrator | Project Manager / Team Lead | Team Member | Viewer / Stakeholder |
+|---|---|---|---|---|
+| Manage users/global roles/config | Yes | No | No | No |
+| Create team | Yes | No | No | No |
+| Manage team members | Yes | Yes | No | No |
+| Create/update/archive projects | Yes | Yes* | No | No |
+| Manage project members | Yes | Yes* | No | No |
+| View authorized project/task | Yes | Yes | Yes | Yes |
+| Create/update tasks | Yes | Yes* | Yes* | No |
+| Delete/archive tasks | Yes | Yes* | Limited only if matrix/policy permits | No |
+| Assign tasks | Yes | Yes* | Limited* | No |
+| Change task status/Kanban | Yes | Yes* | Yes* | No |
+| Manage dependencies | Yes | Yes* | Limited* | No |
+| Add comments/mentions | Yes | Yes* | Yes* | No |
+| Edit own comment within 15 min | Yes | Yes* | Yes* | No |
+| Delete comments | Yes | Yes* | Limited* | No |
+| Upload attachments | Yes | Yes* | Yes* | No |
+| View/download attachments | Yes | Yes* | Yes* | Yes* if project member |
+| View basic analytics | Yes | Yes* | Yes* | Yes* |
+| View audit | Global | Authorized project scope only | Limited per matrix; no general audit screen | No |
+| View PIRAE insights | Yes | Yes* | Limited* | No |
+| Notifications | Own records | Own records | Own records | Own records |
+
+`*` = only when project/team membership, project-level role, assignment/resource policy and endpoint permission allow it. Global role must not bypass a stricter project role. A Viewer may read data only for projects they are authorized to access.
+
+## 17. Final baseline acceptance checklist for Deliverable A
+
+Deliverable A is considered complete when each item below is satisfied in the catalogue and preserved for the next traceability phase:
+
+- [x] SRS 3.0 used as the sole normative baseline.
+- [x] All 15 Sprint DOCX artifacts and the Errata Sheet reviewed for compatible requirements and contradictions.
+- [x] OpenAPI operations inventoried and contract mismatches explicitly recorded.
+- [x] Functional requirements organized by module without duplicating IDs.
+- [x] Non-functional requirements include measurable targets and verification method.
+- [x] UI/UX requirements separated from non-normative design preferences.
+- [x] Business rules include role scope, state transitions, edit windows, notification durability, attachment XOR and PIRAE non-autonomy.
+- [x] Domain model includes all 15 frozen entity groups, FK/default/CHECK/UNIQUE constraints and mandatory indexes.
+- [x] Frozen 13-event contract captured, with unauthorized event additions rejected.
+- [x] PIRAE formulas and threshold rules reconciled to SRS 3.0.
+- [x] Deployment, security headers, TLS, backup, RPO/RTO, health, logs, CI/CD and testing targets captured.
+- [x] Errata decisions and artifact-only additions distinguished from SRS-mandated requirements.
+- [x] Unresolved schema/API gaps explicitly listed rather than hidden behind frontend assumptions.
+- [x] Prototype must not be modified in the next step until Deliverable B traceability/audit preparation is based on this catalogue.
+
+**Deliverable A conclusion:** the requirements are now consolidated across the SRS 3.0 baseline, OpenAPI contract, Sprint 1–14 documents and Errata Sheet. The requirements catalogue is complete as a cross-artifact requirements analysis; G-03 through G-07 and other items in §15 are not missing analysis—they are identified design/schema/API gaps that must remain visible until formally resolved.
