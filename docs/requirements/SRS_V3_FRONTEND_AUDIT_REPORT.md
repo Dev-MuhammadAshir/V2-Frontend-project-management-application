@@ -127,3 +127,16 @@ These need subordinate test cases linked to parent requirement IDs. Example: `FR
 - **Not assessed:** not inspected or not tested yet.
 
 No performance, security, accessibility, backend, or full SRS conformance claim should be made until the relevant verification evidence exists.
+
+## 7. Changes made on the audit branch
+
+The following targeted improvements have been committed to `audit/srs-v3-requirements-enhancement`:
+
+- Added a `RequireAuth` route guard so workspace routes redirect to `/login` when the demo session is absent.
+- Changed mock-auth initialization to start signed out unless an explicit demo session ID is present; logout clears the saved demo auth ID.
+- Wired the Topbar sign-out action to call `logout()` before navigating to the login screen.
+- Aligned existing localStorage write keys with the versioned `*_v3` keys used by initialization, and added persistence effects for comments, audit logs, notifications, settings, attachments and dependencies.
+- Added client-side task dependency checks: task existence, same-project requirement, duplicate/self-link rejection, cycle rejection, and blocking unfinished prerequisites from being marked `DONE`.
+- Added the atomic traceability matrix and this audit report.
+
+**Verification limitation:** These changes were written through GitHub's file API. A local dependency install, TypeScript check, Vite production build, browser smoke test and automated unit test suite have not been run in this environment. Treat the changes as pending verification, not as passed tests. Real authentication, API authorization, PostgreSQL persistence, Socket.IO, Redis, backend-side dependency enforcement, PIRAE jobs and production controls remain out of scope for frontend-only code changes.
