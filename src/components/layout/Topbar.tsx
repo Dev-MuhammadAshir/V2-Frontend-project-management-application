@@ -40,7 +40,7 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleMobileMenu, onOpenCreate
     setSimulatedError,
     openTaskDrawer
   } = useApp();
-  const { switchRole } = useMockAuth();
+  const { switchRole, logout } = useMockAuth();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -436,7 +436,8 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleMobileMenu, onOpenCreate
                 <button
                   onClick={() => {
                     setIsUserMenuOpen(false);
-                    navigate('/login');
+                    logout();
+                    navigate('/login', { replace: true });
                   }}
                   className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-rose-600 hover:bg-rose-50 text-left border-t border-slate-100 cursor-pointer mt-1"
                 >
