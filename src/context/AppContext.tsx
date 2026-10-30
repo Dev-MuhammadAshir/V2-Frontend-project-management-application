@@ -443,6 +443,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const task = tasks.find(t => t.id === taskId);
     if (!task || task.status === newStatus) return;
 
+    // SRS FR-TASK-15 / FR-KAN-03: a blocked task cannot be completed
+    // while any prerequisite task remains unfinished.
+    if (newStatus === 'DONE') {
+      const unfinishedBlockers = taskDependencies
+        .filter(dependency => dependency.blockedTaskId === taskId)
+        .map(dependency => tasks.find(candidate => candidate.id === dependency.blockingTaskId))
+        .filter((blocker): blocker is Task => Boolean(blocker && blocker.status !== 'DONE'));
+
+      if (unfinishedBlockers.length > 0) {
+        addToast({
+          type: 'warning',
+          title: 'Task Is Blocked',
+          message: `Complete prerequisite task(s) first: ${unfinishedBlockers.map(blocker => blocker.key).join(', ')}.`
+        });
+        return;
+      }
+    }
+
     setTasks(prev =>
       prev.map(t => (t.id === taskId ? { ...t, status: newStatus, updatedAt: new Date().toISOString() } : t))
     );
@@ -870,6 +888,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
       return;
     }
+
+    const blockingTask = tasks.find(task => task.id === blockingTaskId);
+    const blockedTask = tasks.find(task => task.id === blockedTaskId);
+    if (!blockingTask || !blockedTask) {
+      addToast({ type: 'error', title: 'Invalid Dependency', message: 'Both tasks must exist.' });
+      return;
+    }
+    if (blockingTask.projectId !== blockedTask.projectId) {
+      addToast({ type: 'error', title: 'Invalid Dependency', message: 'Dependencies must stay within the same project.' });
+      return;
+    }
+
+    // Adding A -> B is invalid if B already reaches A (that would create a cycle).
+    const reaches = (fromTaskId: string, targetTaskId: string, visited = new Set<string>()): boolean => {
+      if (fromTaskId === targetTaskId) return true;
+      if (visited.has(fromTaskId)) return false;
+      visited.add(fromTaskId);
+      return taskDependencies
+        .filter(dependency => dependency.blockingTaskId === fromTaskId)
+        .some(dependency => reaches(dependency.blockedTaskId, targetTaskId, visited));
+    };
+    if (reaches(blockedTaskId, blockingTaskId)) {
+      addToast({ type: 'error', title: 'Dependency Cycle', message: 'This link would create a circular dependency.' });
+      return;
+    }
+
     const exists = taskDependencies.some(
       d => d.blockingTaskId === blockingTaskId && d.blockedTaskId === blockedTaskId
     );
