@@ -228,32 +228,56 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Persist critical collections
   useEffect(() => {
-    localStorage.setItem('projectflow_tasks', JSON.stringify(tasks));
+    localStorage.setItem('projectflow_tasks_v3', JSON.stringify(tasks));
   }, [tasks]);
 
   useEffect(() => {
-    localStorage.setItem('projectflow_projects', JSON.stringify(projects));
+    localStorage.setItem('projectflow_projects_v3', JSON.stringify(projects));
   }, [projects]);
 
   useEffect(() => {
-    localStorage.setItem('projectflow_project_members', JSON.stringify(projectMembers));
+    localStorage.setItem('projectflow_project_members_v3', JSON.stringify(projectMembers));
   }, [projectMembers]);
 
   useEffect(() => {
-    localStorage.setItem('projectflow_users', JSON.stringify(users));
+    localStorage.setItem('projectflow_users_v3', JSON.stringify(users));
   }, [users]);
 
   useEffect(() => {
-    localStorage.setItem('projectflow_teams', JSON.stringify(teams));
+    localStorage.setItem('projectflow_teams_v3', JSON.stringify(teams));
   }, [teams]);
 
   useEffect(() => {
-    localStorage.setItem('projectflow_team_members', JSON.stringify(teamMembers));
+    localStorage.setItem('projectflow_team_members_v3', JSON.stringify(teamMembers));
   }, [teamMembers]);
 
   useEffect(() => {
-    localStorage.setItem('projectflow_risks', JSON.stringify(risks));
+    localStorage.setItem('projectflow_risks_v3', JSON.stringify(risks));
   }, [risks]);
+
+  useEffect(() => {
+    localStorage.setItem('projectflow_comments_v3', JSON.stringify(comments));
+  }, [comments]);
+
+  useEffect(() => {
+    localStorage.setItem('projectflow_audit_v3', JSON.stringify(auditLogs));
+  }, [auditLogs]);
+
+  useEffect(() => {
+    localStorage.setItem('projectflow_notifs_v3', JSON.stringify(notifications));
+  }, [notifications]);
+
+  useEffect(() => {
+    localStorage.setItem('projectflow_settings_v3', JSON.stringify(settings));
+  }, [settings]);
+
+  useEffect(() => {
+    localStorage.setItem('projectflow_attachments_v3', JSON.stringify(attachments));
+  }, [attachments]);
+
+  useEffect(() => {
+    localStorage.setItem('projectflow_dependencies_v3', JSON.stringify(taskDependencies));
+  }, [taskDependencies]);
 
   useEffect(() => {
     localStorage.setItem('projectflow_current_user_id', currentUserId);
@@ -418,6 +442,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const moveTaskStatus = (taskId: string, newStatus: TaskStatus) => {
     const task = tasks.find(t => t.id === taskId);
     if (!task || task.status === newStatus) return;
+
+    // SRS FR-TASK-15 / FR-KAN-03: a blocked task cannot be completed
+    // while any prerequisite task remains unfinished.
+    if (newStatus === 'DONE') {
+      const unfinishedBlockers = taskDependencies
+        .filter(dependency => dependency.blockedTaskId === taskId)
+        .map(dependency => tasks.find(candidate => candidate.id === dependency.blockingTaskId))
+        .filter((blocker): blocker is Task => Boolean(blocker && blocker.status !== 'DONE'));
+
+      if (unfinishedBlockers.length > 0) {
+        addToast({
+          type: 'warning',
+          title: 'Task Is Blocked',
+          message: `Complete prerequisite task(s) first: ${unfinishedBlockers.map(blocker => blocker.key).join(', ')}.`
+        });
+        return;
+      }
+    }
 
     setTasks(prev =>
       prev.map(t => (t.id === taskId ? { ...t, status: newStatus, updatedAt: new Date().toISOString() } : t))
@@ -846,6 +888,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
       return;
     }
+
+    const blockingTask = tasks.find(task => task.id === blockingTaskId);
+    const blockedTask = tasks.find(task => task.id === blockedTaskId);
+    if (!blockingTask || !blockedTask) {
+      addToast({ type: 'error', title: 'Invalid Dependency', message: 'Both tasks must exist.' });
+      return;
+    }
+    if (blockingTask.projectId !== blockedTask.projectId) {
+      addToast({ type: 'error', title: 'Invalid Dependency', message: 'Dependencies must stay within the same project.' });
+      return;
+    }
+
+    // Adding A -> B is invalid if B already reaches A (that would create a cycle).
+    const reaches = (fromTaskId: string, targetTaskId: string, visited = new Set<string>()): boolean => {
+      if (fromTaskId === targetTaskId) return true;
+      if (visited.has(fromTaskId)) return false;
+      visited.add(fromTaskId);
+      return taskDependencies
+        .filter(dependency => dependency.blockingTaskId === fromTaskId)
+        .some(dependency => reaches(dependency.blockedTaskId, targetTaskId, visited));
+    };
+    if (reaches(blockedTaskId, blockingTaskId)) {
+      addToast({ type: 'error', title: 'Dependency Cycle', message: 'This link would create a circular dependency.' });
+      return;
+    }
+
     const exists = taskDependencies.some(
       d => d.blockingTaskId === blockingTaskId && d.blockedTaskId === blockedTaskId
     );
